@@ -90,8 +90,11 @@ fabric.properties
 /.idea/**/markdown-navigator/
 
 # custom
-
-
+*__pycache__*
+*.db
+*/.idea
 
 # End of https://www.gitignore.io/api/pycharm
 /.idea
+/web_text_extraction/mercury-web-parser/node_modules
+/web_text_extraction/mercury-web-parser/.idea
