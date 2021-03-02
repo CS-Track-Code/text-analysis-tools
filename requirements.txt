@@ -1,1 +1,9 @@
 spacy==2.2.3
+pandas==0.24.2
+mysql-connector-python==8.0.21
+nltk==3.4
+requests==2.20.0
+translate==3.5.0
+polyglot>=15.10.3
+gensim==3.6.0
+numpy==1.15.2
