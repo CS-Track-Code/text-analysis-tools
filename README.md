@@ -53,13 +53,13 @@ For this you need to run a local server with Node.js
 You need to have node.js installed on your machine (https://nodejs.org/en/).
 Next you will have to install the required modules via the console. For this you navigate to this projects folder
 `/web_text_extraction/mercury_web_parser` and run `npm i`. 
-As soon as this is dome you can run the server by running `node app.js` in the same directory.
+As soon as this is done you can run the server by running `node app.js` in the same directory.
 
 
 ## ESA
-ESA requires esa.db to be placed in `/esa/esa_data/` which you can download from https://cloud.innowise.de/index.php/f/115030
+ESA requires esa.db to be placed in `/esa/esa_data/` which you can download from https://cloud.innowise.de/index.php/s/ajoCKxy6Bi6FB6K
 and if you want to prefilter the used terms with tfidf you need to download the 
-[tfidf model](https://cloud.innowise.de/index.php/f/115053) as well which is to be placed in `/concept_extraction/data/`.
+[tfidf model](https://cloud.innowise.de/index.php/s/NAQbmiFcaBYePAw) as well which is to be placed in `/concept_extraction/data/`.
 Additionally you will need a running mysql service. The host of which you need to enter in the `/esa/config.py` 
 file in addition to the user and password which the esa module should use.
 

@@ -98,3 +98,5 @@ fabric.properties
 /.idea
 /web_text_extraction/mercury-web-parser/node_modules
 /web_text_extraction/mercury-web-parser/.idea
+/pycld2-0.41-cp39-cp39-win_amd64.whl
+/PyICU-2.6-cp39-cp39-win_amd64.whl

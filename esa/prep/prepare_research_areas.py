@@ -6,9 +6,13 @@ from esa.analysis import esa as esa
 from esa.analysis.esa import ESA
 from web_text_extraction import mercury_web_parser as Mercury
 import esa.config as config
-
+import nltk
 
 def init():
+
+    nltk.download('stopwords')
+    nltk.download('punkt')
+
     try:
         mydb = mysql.connector.connect(
             host=config.host,
