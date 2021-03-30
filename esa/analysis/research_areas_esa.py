@@ -20,7 +20,7 @@ class ResearchAreasESA:
             host=config.host,
             user=config.user,
             password=config.password,
-            database="esa_research_areas"
+            database=config.database
         )
 
         self.mycursor = self.ra_con.cursor()
@@ -177,6 +177,12 @@ class ResearchAreasESA:
             self.ra_con.commit()
         else:
             res_area_vec_abs_val = value_row[0]
+        if res_area_vec_abs_val == 0:
+            res_area = [line for line in self.get_research_areas() if line[0] == ra_id]
+            print("The absolute value of the research area '" + res_area[0][2] +
+                  "' is 0. This likely means that something went wrong in preprocessing the research areas. "
+                  "If this happened for multiple research areas you should try to rerun preprocessing. "
+                  "(For this you will have to first delete the database 'esa_research_areas' manually)")
         return res_area_vec_abs_val
 
     def get_research_area_sim_matrix(self):

@@ -89,7 +89,11 @@ class ESA:
         if word2_abs is None:
             word2_abs = self.abs_val_of_vec(vector_two)
 
-        cos = vec_mul_res / (word1_abs * word2_abs)
+        if word1_abs == 0 or word2_abs == 0:
+            print("One of the given vectors has the absolute value of zero. This results in a similarity of zero.")
+            cos = 0
+        else:
+            cos = vec_mul_res / (word1_abs * word2_abs)
         return cos
 
     def abs_val_of_vec(self, vec):

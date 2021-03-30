@@ -1,12 +1,13 @@
 import pandas as pd
 import copy
 import mysql.connector
+import nltk
 
 from esa.analysis import esa as esa
 from esa.analysis.esa import ESA
 from web_text_extraction import mercury_web_parser as Mercury
 import esa.config as config
-import nltk
+
 
 def init():
 
@@ -18,7 +19,7 @@ def init():
             host=config.host,
             user=config.user,
             password=config.password,
-            database="esa_research_areas"
+            database=config.database
         )
 
         mycursor = mydb.cursor()
@@ -33,7 +34,7 @@ def init():
 
         mycursor = mydb.cursor(buffered=True)
 
-        mycursor.execute("CREATE DATABASE esa_research_areas")
+        mycursor.execute("CREATE DATABASE " + config.database)
         print("created")
 
     mycursor.execute("SHOW TABLES")
