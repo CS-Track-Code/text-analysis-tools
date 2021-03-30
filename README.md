@@ -23,6 +23,10 @@ after that installing polyglot should work by either running
 Some tools need further preparation like downloads or installation as indicated below.
 
 main.py shows example code on how to use the tools.
+main.py will ONLY run without error after installing and downloading all necessary things
+detailed in the following sections, even if individual parts are independent from each other
+(i.e. if you only really want to use NER, you can install the required models and copy
+the corresponding code from the examples and it will work fine)
 
 ## Named Entity Recognition
 NER is implemented using spacy and pretrained spacy models which must be downloaded manually via console.

@@ -6,6 +6,13 @@ from esa.analysis.research_areas_esa import ResearchAreasESA
 
 
 def keyword_extraction_dbpedia(text, lang):
+    """
+    to extract keywords using dbpedia
+    :param text: input text (string)
+    :param lang: language of text (string)
+    shortened to two letters ("en" for english, "de" for german), limited by the languages dbpedia supports
+    :return: list of dbpedia results, per result a list with word, tf, surface_form, types
+    """
     dbpedia_ex = DBPediaExtractor(confidence=0.5, lang=lang, chunk_size=300)
     tokenized_words = Text(text).tokens
     token_list = []
@@ -42,12 +49,29 @@ def keyword_extraction_dbpedia(text, lang):
 
 
 def keywords_plain_dbpedia(dbpedia_list):
-    # returns one-dimensional list -> only keywords
+    """
+
+    :param dbpedia_list: output list from keyword_extraction_dbpedia(..)
+    :return: filtered one-dimensional list containing only the found dbpedia words
+    """
     db_keywords = [word[0] for word in dbpedia_list]
     return db_keywords
 
 
 def setup_research_area(research_areas_esa, edits, top, cutoff_in_relation_to_max, sort, tfidf_proportion):
+    """
+
+    :param research_areas_esa: object research_areas_esa (can be reused to not reload research areas every time)
+    :param edits: boolean; True if changes for configuration were made
+    :param top: int or None; if not None sort has to be True;
+    absolute cutoff for matched research areas (return x first research areas)
+    :param cutoff_in_relation_to_max: float (0 < x < 1); sets cutoff in relation to the maximal cutoff
+    :param sort: boolean; True if research areas should be sorted by similarity (should be True if top is not None)
+    :param tfidf_proportion: float (0 < x < 1); in relation to the highest tfidf score in the text
+    how high has a words score to be for the word to be used in the esa calculation
+    (used to only include high value words and to reduce calculation time by cutting out low value words)
+    :return: research_areas_esa object with given configuration
+    """
     if research_areas_esa is None:
         research_areas_esa = ResearchAreasESA("esa_data/esa.db", cutoff_in_relation_to_max=cutoff_in_relation_to_max,
                                               sort=sort, tfidf_proportion=tfidf_proportion, top=None)
@@ -62,6 +86,25 @@ def setup_research_area(research_areas_esa, edits, top, cutoff_in_relation_to_ma
 
 def get_research_areas_esa(text, research_areas_esa=None, edits=False, top=None, cutoff_in_relation_to_max=None,
                            sort=True, tfidf_proportion=0.2):
+    """
+
+    :param text:
+    :param research_areas_esa: object research_areas_esa (can be reused to not reload research areas every time)
+    :param edits: boolean; True if changes for configuration were made
+    (if False and research_areas_esa is given: top, cutoff_in_relation_to_max, sort and tfidf_proportion don't have to be set!)
+    :param top: int or None; if not None sort has to be True;
+    absolute cutoff for matched research areas (return x first research areas)
+    :param cutoff_in_relation_to_max: float (0 < x < 1); sets cutoff in relation to the maximal cutoff
+    :param sort: boolean; True if research areas should be sorted by similarity (should be True if top is not None)
+    :param tfidf_proportion: float (0 < x < 1); in relation to the highest tfidf score in the text
+    how high has a words score to be for the word to be used in the esa calculation
+    (used to only include high value words and to reduce calculation time by cutting out low value words)
+    :return: res_areas_with_sim_list (list of matched research areas, each with category, research area, similarity),
+    res_areas (list of matched research areas only),
+    categories_with_count (counted how many research areas per category were matched),
+    top_category (category with most matched research areas),
+    bow (used bag of words for esa)
+    """
     research_areas_esa = setup_research_area(research_areas_esa, edits, top, cutoff_in_relation_to_max, sort,
                                              tfidf_proportion)
 
@@ -76,7 +119,24 @@ def get_research_areas_esa(text, research_areas_esa=None, edits=False, top=None,
 def get_research_areas_esa_with_dbpedia(text, research_areas_esa=None, edits=False, top=None,
                                         cutoff_in_relation_to_max=None, sort=True, tfidf_proportion=0.25):
     """
-    top: cutoff -> top X research areas
+
+    :param text:
+    :param research_areas_esa: object research_areas_esa (can be reused to not reload research areas every time)
+    :param edits: boolean; True if changes for configuration were made
+    (if False and research_areas_esa is given: top, cutoff_in_relation_to_max, sort and tfidf_proportion don't have to be set!)
+    :param top: int or None; if not None sort has to be True;
+    absolute cutoff for matched research areas (return x first research areas)
+    :param cutoff_in_relation_to_max: float (0 < x < 1); sets cutoff in relation to the maximal cutoff
+    :param sort: boolean; True if research areas should be sorted by similarity (should be True if top is not None)
+    :param tfidf_proportion: float (0 < x < 1); in relation to the highest tfidf score in the text
+    how high has a words score to be for the word to be used in the esa calculation
+    (used to only include high value words and to reduce calculation time by cutting out low value words)
+    :return: res_areas_with_sim_list (list of matched research areas, each with category, research area, similarity),
+    res_areas (list of matched research areas only),
+    categories_with_count (counted how many research areas per category were matched),
+    top_category (category with most matched research areas),
+    db_research_areas (research areas that match found dbpedia keywords),
+    bow (used bag of words for esa)
     """
     research_areas_esa = setup_research_area(research_areas_esa, edits, top, cutoff_in_relation_to_max, sort,
                                              tfidf_proportion)
@@ -91,9 +151,24 @@ def get_research_areas_esa_with_dbpedia(text, research_areas_esa=None, edits=Fal
 
 
 def get_research_areas_esa_with_dbpedia_integrated(text, research_areas_esa, cutoff_in_rel_to_max=0.75):
-    # method made specifically for workbench application, returns the complete list of all research areas additionally
-    # to the shortened list (using the cutoff). Used to give users the option to modify the results.
-    # And sorts db results in shortened result list
+    """
+    method made specifically for workbench application, returns the complete list of all research areas additionally
+    to the shortened list (using the cutoff). Used to give users the option to modify the results.
+    And sorts db results in shortened result list
+
+    assumes that configuration is already set, cutoff_in_relation_to_max is required because it is set to None to get
+    all research areas and then perform the cutoff here to return both lists
+    :param text:
+    :param research_areas_esa: object research_areas_esa (can be reused to not reload research areas every time)
+    :param cutoff_in_relation_to_max: float (0 < x < 1); sets cutoff in relation to the maximal cutoff
+    :return:
+    research_areas_similarity_shortlist (list of matched research areas, each with category, research area, similarity),
+    res_areas_with_sim_list (list of ALL research areas, each with category, research area, similarity),
+    categories_with_count(counted how many research areas per category were matched),
+    top_category, (category with most matched research areas),
+    db_research_areas (research areas that match found dbpedia keywords),
+    unique_words (used bag of words for esa)
+    """
 
     research_areas_esa.edit_cutoff(cutoff_in_relation_to_max=None)
 
@@ -110,7 +185,7 @@ def get_research_areas_esa_with_dbpedia_integrated(text, research_areas_esa, cut
 
     categories = [ras[0] for ras in research_areas_similarity_shortlist]
 
-    # sort categories by count #todo: sinnvoll bei verschieden vielen topics je category?
+    # sort categories by count
     counts = Counter([i for i in categories])
     unique_categories = list({i: i for i in categories}.values())
     sorted_categories = sorted(unique_categories, key=lambda item: counts[item], reverse=True)
