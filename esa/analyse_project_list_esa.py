@@ -6,12 +6,20 @@ from analysis.research_areas_esa import ResearchAreasESA
 from esa.analysis import analyse
 
 # analysis of zooniverse project; input as excel table including ProjectName and About text
-origin_filepath = input("Enter filepath for excel (press 'enter' to end program): ")
-dbpedia = int("1")
+origin_filepath = input("Enter filepath for excel (press 'enter' to show example, enter 'X' to stop programm): ")
+example_path = "esa_data/projects_example.xls"
+dbpedia = int(input("Research Areas found with DBPedia sepearately (0) or integrated (1)?: "))
 
-while not origin_filepath == "" and (dbpedia == 0 or dbpedia == 1):
-    research_areas_esa = ResearchAreasESA("esa_data/esa.db", cutoff_in_relation_to_max=0.75, tfidf_proportion=0.2)
-    fp_fn_cols = ["RA", "FP (Both)", "FN (Only Project)", "FN (Only RA)"]
+if origin_filepath == "":
+    origin_filepath = example_path
+
+cutoff_in_relation_to_max = 0.75
+research_areas_esa = ResearchAreasESA("esa_data/esa.db", cutoff_in_relation_to_max=cutoff_in_relation_to_max,
+                                      tfidf_proportion=0.2)
+research_areas_esa.get_research_areas()
+research_areas_esa.get_research_area_vectors()
+
+while not origin_filepath == "" and not origin_filepath == 'X' and (dbpedia == 0 or dbpedia == 1):
 
     zooniverse = pd.read_excel(origin_filepath, usecols=['ProjectName', 'About']).values.tolist()
     zooniverse_short = []
@@ -21,9 +29,6 @@ while not origin_filepath == "" and (dbpedia == 0 or dbpedia == 1):
 
     addendum = "results"
     result_filepath = origin_filepath.rsplit(".", 1)[0] + "_" + addendum + ".csv"
-    fp_fn_filepath = origin_filepath.rsplit("/", 1)[0] + "/FN-FP/"
-    if not path.exists(fp_fn_filepath):
-        mkdir(fp_fn_filepath)
     if path.exists(result_filepath):
         zooniverse_results = pd.read_csv(result_filepath, usecols=["ProjectName", "Categories", "Topics",
                                                                    "Topics with Similarity", "DBPedia Topics",
@@ -50,17 +55,18 @@ while not origin_filepath == "" and (dbpedia == 0 or dbpedia == 1):
                 add sort=False to get list ordered alphabetically
                 """
                 if dbpedia == 0:
-                    esa_research_areas_sim, esa_research_areas, categories_with_count, top_category = \
-                        analyse.get_research_areas_esa(text, research_areas_esa=research_areas_esa)
-                    db_research_areas = []
-                else:
-                    esa_research_areas_sim, esa_research_areas, categories_with_count, top_category, db_research_areas \
+                    esa_research_areas_sim, esa_research_areas, categories_with_count, top_category, db_research_areas, bow \
                         = analyse.get_research_areas_esa_with_dbpedia(text, research_areas_esa=research_areas_esa)
+                else:
+                    esa_research_areas_sim, res_areas_with_sim_list, categories_with_count, top_category, \
+                        db_research_areas, unique_words = analyse.get_research_areas_esa_with_dbpedia_integrated\
+                        (text, research_areas_esa=research_areas_esa, cutoff_in_rel_to_max=cutoff_in_relation_to_max)
+                    db_research_areas = "integrated"
 
                 categories = [c[0] for c in categories_with_count]
 
                 print("\n## RESULT " + name + "  ##")
-                print(esa_research_areas)
+                print(esa_research_areas_sim)
                 print(db_research_areas)
                 print(categories)
             else:
@@ -69,17 +75,20 @@ while not origin_filepath == "" and (dbpedia == 0 or dbpedia == 1):
                 esa_research_areas = categories = esa_research_areas_sim = db_research_areas= ""
 
             time_needed = str(time.time() - start_time)
-            item = [name, categories, esa_research_areas, esa_research_areas_sim, db_research_areas, time_needed]
+            item = [name, categories, esa_research_areas_sim, db_research_areas, time_needed]
             zooniverse_results.append(item)
 
             # save result #
             sim_pd = pd.DataFrame(zooniverse_results,
-                                  columns=["ProjectName", "Categories", "Topics", "Topics with Similarity",
+                                  columns=["ProjectName", "Categories", "Topics with Similarity",
                                            "DBPedia Topics", "Time"])
             sim_pd.to_csv(result_filepath)
 
         counter += 1
 
     print("\n## DONE ##\n")
-    origin_filepath = input("Enter filepath (press 'enter' to end program): ")
+    print("Saved result in: " + result_filepath)
+    origin_filepath = input("Enter filepath for excel (press 'enter' to show example, enter 'X' to stop programm): ")
+    if origin_filepath == "":
+        origin_filepath = example_path
     dbpedia = int("1")
