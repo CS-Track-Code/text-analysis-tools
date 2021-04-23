@@ -61,9 +61,9 @@ As soon as this is done you can run the server by running `node app.js` in the s
 
 
 ## ESA
-ESA requires esa.db to be placed in `/esa/esa_data/` which you can download from https://cloud.innowise.de/index.php/s/ajoCKxy6Bi6FB6K
+ESA requires esa.db to be placed in `/esa/esa_data/` which you can download from https://cloud.innowise.de/index.php/s/DERr2BiWZWACJWz
 and if you want to prefilter the used terms with tfidf you need to download the 
-[tfidf model](https://cloud.innowise.de/index.php/s/NAQbmiFcaBYePAw) as well which is to be placed in `/concept_extraction/data/`.
+[tfidf model](https://cloud.innowise.de/index.php/s/cJFGSijPEGXZqJn) as well which is to be placed in `/concept_extraction/data/`.
 Additionally you will need a running mysql service. The host of which you need to enter in the `/esa/config.py` 
 file in addition to the user and password which the esa module should use.
 
