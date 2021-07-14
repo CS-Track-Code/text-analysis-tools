@@ -1,13 +1,3 @@
-import spacy
-from ner.spacy_ner import SpacyNer
-
-from translator import translation_tool
-
-from esa.analysis.esa import ESA
-
-from esa.analysis.research_areas_esa import ResearchAreasESA
-from esa.analysis import analyse
-
 
 """ NER example 
 
@@ -17,6 +7,8 @@ offers several functions
 examples require installations detailed in the Named Entity Recognition section in ReadMe 
 
 """
+import spacy
+from ner.spacy_ner import SpacyNer
 print("Examples for NER")
 
 sentences = "Serena Williams plays tennis at Wimbledon. Alexis Ohanian is married to Serena Williams."
@@ -78,6 +70,7 @@ print("ANONYMIZED:\t" + anonymized_text)
 Translation 
 
 """
+from translator import translation_tool
 
 text = "Serena William spielt Tennis in Wimbledon. Sie ist verheiratet mit Alexis Ohanian."
 language = translation_tool.get_language(text)
@@ -95,6 +88,8 @@ ESA - text similarity
 mere ESA requires the esa.db and tfidf model detailed in ESA section in ReadMe
 does not yet require the preparation of research areas
 """
+
+from esa.analysis.esa import ESA
 
 esa_db_path = "esa/esa_data/esa.db"
 esa = ESA(esa_db_path)
@@ -129,6 +124,9 @@ ESA for Research Areas
 
 
 """
+
+from esa.analysis.research_areas_esa import ResearchAreasESA
+from esa.analysis import analyse
 
 research_areas_esa = ResearchAreasESA(esa_db_path)
 
