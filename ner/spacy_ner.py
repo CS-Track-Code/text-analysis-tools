@@ -83,3 +83,23 @@ class SpacyNer:
             resultlist.append(res_line)
         return resultlist
 
+    def process_text_get_dicts(self, text):
+        dict_list = []
+        labels = self.get_labels(text)
+
+        for lab in labels:
+            if lab[1] in self.lab_desc:
+                dict = {
+                    "text": lab[0],
+                    "label": lab[1],
+                    "description": self.lab_desc[lab[1]]
+                }
+            else:
+                dict = {
+                    "text": lab[0],
+                    "label": lab[1],
+                    "description": ""
+                }
+            dict_list.append(dict)
+        return dict_list
+

@@ -42,6 +42,11 @@ ner_text_list = ner_spacy.process_text_get_filtered_1d_resultlist(sentences)
 print(ner_text_list)
 # OUTPUT (of "process_text_get_filtered_1d_resultlist"): ['Serena Williams, PERSON (People, including fictional.)', 'Wimbledon, ORG (Companies, agencies, institutions, etc.)', 'Alexis Ohanian, PERSON (People, including fictional.)']
 
+# list with strings "text, label (descriptor)"
+ner_dict_list = ner_spacy.process_text_get_dicts(sentences)
+print(ner_dict_list)
+# OUTPUT (of "process_text_get_dicts"): [{'text': 'Serena Williams', 'label': 'PERSON', 'description': 'People, including fictional.'}, {'text': 'Wimbledon', 'label': 'ORG', 'description': 'Companies, agencies, institutions, etc.'}, {'text': 'Alexis Ohanian', 'label': 'PERSON', 'description': 'People, including fictional.'}, {'text': 'Serena Williams', 'label': 'PERSON', 'description': 'People, including fictional.'}]
+
 # Get description for label:
 label = "ORG"
 print(spacy.explain(label))
