@@ -40,6 +40,12 @@ The commando line depends on the language for the model you need.
 for other languages please refer to https://spacy.io/models
 
 
+## Anonymization
+Anonymization is implemented using the Entity Ruler (and NER) by spacy as such the same spacy models are needed.
+The anonymization uses sha256 to anonymize sensible data in a given text (change the used key for usage!). 
+The used criteria for this can be found in the dedicated [README.md](anonymization/README.md).
+
+
 ## Translator
 The current translator uses the translate module which per default uses the free translation service 
 [MyMemory](https://mymemory.translated.net/doc/usagelimits.php). 
@@ -47,7 +53,6 @@ This brings the caveat of a limited number of translations available per day (10
 For a higher volume with the current setup it is necessary to either use a valid email address (10000 words per day) 
 at MyMemory or switch it to the paid translation service from 
 [Microsoft](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/translator/).
-
 
 
 ## Text Extraction (needed for the setup of ESA) <a name="text_extraction"></a>

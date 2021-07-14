@@ -17,6 +17,7 @@ offers several functions
 examples require installations detailed in the Named Entity Recognition section in ReadMe 
 
 """
+print("Examples for NER")
 
 sentences = "Serena Williams plays tennis at Wimbledon. Alexis Ohanian is married to Serena Williams."
 ner_spacy = SpacyNer("en")
@@ -24,27 +25,48 @@ ner_spacy = SpacyNer("en")
 # list with (text, label, start_char, end_char)
 ner_labels = ner_spacy.get_labels(sentences)
 print(ner_labels)
-# OUTPUT: [('Serena Williams', 'PERSON', 0, 15), ('Wimbledon', 'ORG', 32, 41), ('Alexis Ohanian', 'PERSON', 43, 57), ('Serena Williams', 'PERSON', 72, 87)]
+# OUTPUT (of "get_labels"): [('Serena Williams', 'PERSON', 0, 15), ('Wimbledon', 'ORG', 32, 41), ('Alexis Ohanian', 'PERSON', 43, 57), ('Serena Williams', 'PERSON', 72, 87)]
 
 # list with (text, label, descriptor)
 ner_labels_and_descriptions = ner_spacy.process_text(sentences)
 print(ner_labels_and_descriptions)
-# OUTPUT: [('Serena Williams', 'PERSON', 'People, including fictional.'), ('Wimbledon', 'ORG', 'Companies, agencies, institutions, etc.'), ('Alexis Ohanian', 'PERSON', 'People, including fictional.'), ('Serena Williams', 'PERSON', 'People, including fictional.')]
+# OUTPUT (of "process_text"): [('Serena Williams', 'PERSON', 'People, including fictional.'), ('Wimbledon', 'ORG', 'Companies, agencies, institutions, etc.'), ('Alexis Ohanian', 'PERSON', 'People, including fictional.'), ('Serena Williams', 'PERSON', 'People, including fictional.')]
 
 # list with (text, label, descriptor) no duplicates
 ner_list = ner_spacy.process_text_get_filtered_results(sentences)
 print(ner_list)
-# OUTPUT: [('Serena Williams', 'PERSON', 'People, including fictional.'), ('Wimbledon', 'ORG', 'Companies, agencies, institutions, etc.'), ('Alexis Ohanian', 'PERSON', 'People, including fictional.')]
+# OUTPUT (of "process_text_get_filtered_results"): [('Serena Williams', 'PERSON', 'People, including fictional.'), ('Wimbledon', 'ORG', 'Companies, agencies, institutions, etc.'), ('Alexis Ohanian', 'PERSON', 'People, including fictional.')]
 
 # list with strings "text, label (descriptor)"
 ner_text_list = ner_spacy.process_text_get_filtered_1d_resultlist(sentences)
 print(ner_text_list)
-# OUTPUT: ['Serena Williams, PERSON (People, including fictional.)', 'Wimbledon, ORG (Companies, agencies, institutions, etc.)', 'Alexis Ohanian, PERSON (People, including fictional.)']
+# OUTPUT (of "process_text_get_filtered_1d_resultlist"): ['Serena Williams, PERSON (People, including fictional.)', 'Wimbledon, ORG (Companies, agencies, institutions, etc.)', 'Alexis Ohanian, PERSON (People, including fictional.)']
 
 # Get description for label:
 label = "ORG"
 print(spacy.explain(label))
-# OUTPUT: Companies, agencies, institutions, etc.
+# OUTPUT (of "spacy.explain(label)"): Companies, agencies, institutions, etc.
+
+
+"""
+Anonymization using NER and Entity Ruler by spacy
+"""
+from anonymization.anonymizer import Anonymizer
+
+example_text = "The project is spearheaded by our very own John Miller. " \
+               "If you are interested in joining our efforts feel free to contact John Miller at (555) 555-5555 or via " \
+               "john.miller@xxx.com. For complaints please reach out to our service desk at +5(555)-555-5555 or +55(555)55555."
+
+anonymizer = Anonymizer(lang="en")
+annotated_text, anonymized_text = anonymizer.anonymize_text(example_text, "sdzoi9gbREHJHtud589753w462UZKF")
+
+print("\n\nExample for anonymization:")
+print("ORIGINAL:\t" + example_text)
+print("ANNOTATED:\t" + annotated_text)
+print("ANONYMIZED:\t" + anonymized_text)
+# OUTPUT: ORIGINAL:	The project is spearheaded by our very own John Miller. If you are interested in joining our efforts feel free to contact John Miller at (555) 555-5555 or via john.miller@xxx.com. For complaints please reach out to our service desk at +5(555)-555-5555 or +55(555)55555.
+# OUTPUT: ANNOTATED:	The project is spearheaded by our very own John Miller (PERSON). If you are interested in joining our efforts feel free to contact John Miller (PERSON) at (555) 555-5555 (PHONE_NUMBER) or via john.miller@xxx.com (EMAIL). For complaints please reach out to our service desk at +5(555)-555-5555 (PHONE_NUMBER) or +55(555)55555 (PHONE_NUMBER).
+# OUTPUT: ANONYMIZED:	The project is spearheaded by our very own John Miller. If you are interested in joining our efforts feel free to contact <PERSON>a05244ff4ed1449006964dbdd9810066d2307dfc33bbdabb021b6022dc5268c2</PERSON> at <PHONE_NUMBER>c8e301603fe149c9c20ad1c8d620300e5fa8d97e0bb9d7e1abd1a0e6f3341afe</PHONE_NUMBER> or via <EMAIL>7f616d405e82e76cb665bed6caf315e56c0ab239e6977e137fceef902b3c7a92</EMAIL>. For complaints please reach out to our service desk at <PHONE_NUMBER>376f9e46d154d4659febfcdd1615c2055b790bf66aa13f70c74a1b0c59e2c378</PHONE_NUMBER> or <PHONE_NUMBER>ad7495f24331f7b2efd5b6c809112b51a8dacbc19da4d398caa29808ae9b4610</PHONE_NUMBER>.
 
 
 """ 
