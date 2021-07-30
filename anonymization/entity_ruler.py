@@ -1,6 +1,4 @@
-# Import the requisite library
 import spacy
-from spacy.pipeline import EntityRuler
 from os import path
 
 
@@ -27,28 +25,20 @@ class SpacyEntity:
                     self.nlp = spacy.blank(lang)
                     print("Couldn't load spacy model")
 
-
         # Sample text
-        # text = "This is a sample number (555) 555-5555 and this too +1(467)-287-8367 +49 203 524536. abc.test@test.de"
+        # text = "This is a sample number (555) 555-5555 and this too +5(555)-555-5555 +55 555 55555. abc.test@test.de"
 
-
-        # create the ruler with the ability to overwrite entities
-        self.ruler = EntityRuler(self.nlp, overwrite_ents=True)
+        # add the entity ruler pipe
+        self.ruler = self.nlp.add_pipe("entity_ruler", before="ner")
 
     def add_pattern(self, patterns):
         # add patterns to ruler
         self.ruler.add_patterns(patterns)
 
-        # add the pipe
-        self.nlp.add_pipe(self.ruler, before="ner")
-
     def classify(self, text):
         # create the doc
         doc = self.nlp(text)
         return doc
-
-    def safe(self):
-        self.spacy_model
 
 # extract entities
 # for ent in doc.ents:
