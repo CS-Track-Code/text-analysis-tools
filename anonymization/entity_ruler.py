@@ -4,8 +4,6 @@ from os import path
 
 class SpacyEntity:
     def __init__(self, lang, spacy_trained_model_path=""):
-        self.spacy_model = ""
-
         if lang in ["zh", "en"]:
             self.spacy_model = lang + "_core_web_sm"
         elif lang in ["ca", "da", "nl", "fr", "de", "el", "it", "ja", "lt", "mk", "nb", "pl", "pt", "ro", "ru", "es"]:
@@ -18,8 +16,11 @@ class SpacyEntity:
             if path.exists(spacy_trained_model_path + self.spacy_model):
                 self.nlp = spacy.load(spacy_trained_model_path + self.spacy_model)
             else:
-                spacy.cli.download(self.spacy_model)
-                self.nlp = spacy.load(self.spacy_model)
+                try:
+                    self.nlp = spacy.load(self.spacy_model)
+                except OSError:
+                    spacy.cli.download(self.spacy_model)
+                    self.nlp = spacy.load(self.spacy_model)
         except OSError:
             print("Couldn't load spacy model")
 
@@ -37,6 +38,9 @@ class SpacyEntity:
         # create the doc
         doc = self.nlp(text)
         return doc
+
+    def get_nlp(self):
+        return self.nlp
 
 # extract entities
 # for ent in doc.ents:

@@ -1,26 +1,9 @@
 import spacy
+from anonymization.entity_ruler import SpacyEntity
 
 
 class SpacyNer:
-    def __init__(self, lang):
-        self.spacy_model = ""
-        self.spacy_model = lang + "_core_web_sm"
-        try:
-            self.nlp = spacy.load(self.spacy_model)
-        except OSError:
-            self.spacy_model = lang + "_core_news_sm"
-            try:
-                self.nlp = spacy.load(self.spacy_model)
-            except OSError:
-                self.spacy_model = "xx_ent_wiki_sm"
-                try:
-                    self.nlp = spacy.load(self.spacy_model)
-                    print("No language specific spacy model available. Using default model. "
-                          "Check on https://spacy.io/models how to get a model for this language.")
-                except OSError:
-                    self.nlp = spacy.blank(lang)
-                    print("Couldn't load spacy model")
-
+    def __init__(self, lang, anonymized_texts=False):
         self.lab_desc = {
             "PERSON": "People, including fictional.",
             "NORP": "Nationalities or religious or political groups.",
@@ -43,6 +26,56 @@ class SpacyNer:
             "PER": "Named person or family.",
             "MISC": "Miscellaneous entities, e.g. events, nationalities, products or works of art."
         }
+
+        if anonymized_texts:
+            sp_ent = SpacyEntity(lang)
+
+            pattern = [
+                {"label": "PER", "pattern": [{"ORTH": "<"},
+                                             {"TEXT": {"REGEX": "PER>.{64}</PER"}},
+                                             {"ORTH": ">"}]},
+                {"label": "PERSON", "pattern": [{"ORTH": "<"},
+                                                {"TEXT": {"REGEX": "PERSON"}},
+                                                {"ORTH": ">"},
+                                                {"TEXT": {"REGEX": ".{64}</PERSON>"}}]},
+                {"label": "EMAIL", "pattern": [{"ORTH": "<"},
+                                               {"TEXT": {"REGEX": "EMAIL"}},
+                                               {"ORTH": ">"},
+                                               {"TEXT": {"REGEX": ".{64}</EMAIL>"}}]},
+                {"label": "PERSONAL_ACCOUNT", "pattern": [{"ORTH": "<"},
+                                                          {"TEXT": {"REGEX": "PERSONAL_ACCOUNT"}},
+                                                          {"ORTH": ">"},
+                                                          {"TEXT": {"REGEX": ".{64}</PERSONAL_ACCOUNT>"}}]},
+                {"label": "PHONE_NUMBER", "pattern": [{"ORTH": "<"},
+                                                      {"TEXT": {"REGEX": "PHONE_NUMBER"}},
+                                                      {"ORTH": ">"},
+                                                      {"TEXT": {"REGEX": ".{64}</PHONE_NUMBER>"}}]}
+            ]
+
+            sp_ent.add_pattern(pattern)
+
+            self.nlp = sp_ent.get_nlp()
+
+            self.lab_desc["EMAIL"] = "Former email address of a person, organization or institution"
+            self.lab_desc["PERSONAL_ACCOUNT"] = "Former link to a personal account e.g. on zooniverse"
+            self.lab_desc["PHONE_NUMBER"] = "Former phone number"
+        else:
+            if lang in ["zh", "en"]:
+                self.spacy_model = lang + "_core_web_sm"
+            elif lang in ["ca", "da", "nl", "fr", "de", "el", "it", "ja", "lt", "mk", "nb", "pl", "pt", "ro", "ru", "es"]:
+                self.spacy_model = lang + "_core_news_sm"
+            else:
+                self.spacy_model = "xx_ent_wiki_sm"
+                print("No language specific spacy model available. Using default model. "
+                      "Check on https://spacy.io/models how to get a model for this language.")
+            try:
+                try:
+                    self.nlp = spacy.load(self.spacy_model)
+                except OSError:
+                    spacy.cli.download(self.spacy_model)
+                    self.nlp = spacy.load(self.spacy_model)
+            except OSError:
+                print("Couldn't load spacy model")
 
     def get_descriptors(self):
         return self.lab_desc
