@@ -50,7 +50,7 @@ class Anonymizer:
                     elif result_doc.ents[i+j].sent != sentence:
                         j = len(result_doc.ents) +2
                     j += 1
-            elif result_doc.ents[i].label_ == "PERSON":
+            elif result_doc.ents[i].label_ == "PERSON" or result_doc.ents[i].label_ == "PER":
                 if not (result_doc.ents[i].text in dbpedia_in_text or result_doc.ents[i].text in dbpedia_wiki_words)\
                         and result_doc.ents[i] not in anonymize:
                     anonymize.append(result_doc.ents[i])
@@ -117,6 +117,13 @@ default_patterns = [
                                           {"TEXT": {"REGEX": "^[0-9][0-9][0-9]?$"}},
                                           {"ORTH": ")", "OP": "?"},
                                           {"TEXT": {"REGEX": "[/]?[0-9][0-9][0-9]+$"}}]},
+
+    # +55 555 55 55 55
+    {"label": "PHONE_NUMBER", "pattern": [{"TEXT": {"REGEX": "^[+][0-9][0-9]?[0-9]?$"}},
+                                          {"TEXT": {"REGEX": "^[0-9][0-9][0-9]?$"}},
+                                          {"TEXT": {"REGEX": "[/]?[0-9][0-9]+$"}},
+                                          {"TEXT": {"REGEX": "[/]?[0-9][0-9]+$"}},
+                                          {"TEXT": {"REGEX": "[/]?[0-9][0-9]+$"}}]},
 
     # tel:+55 5 5555 55 555
     {"label": "PHONE_NUMBER", "pattern": [{"TEXT": {"REGEX": "[+][0-9][0-9]?[0-9]?$"}},
