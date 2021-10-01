@@ -3,7 +3,7 @@ from anonymization.entity_ruler import SpacyEntity
 
 
 class SpacyNer:
-    def __init__(self, lang, anonymized_texts=False):
+    def __init__(self, lang, anonymized_texts=False, precreated_patterns=None):
         self.lab_desc = {
             "PERSON": "People, including fictional.",
             "NORP": "Nationalities or religious or political groups.",
@@ -38,6 +38,11 @@ class SpacyNer:
                                              {"TEXT": {"REGEX": "PER"}},
                                              {"ORTH": ">"},
                                              {"TEXT": {"REGEX": ".{64}</PER>"}}]},
+                {"label": "PER", "pattern": [{"ORTH": "<"},
+                                             {"TEXT": {"REGEX": "PER"}},
+                                             {"ORTH": ">"},
+                                             {"TEXT": {"REGEX": ".{64}</PER"}},
+                                             {"ORTH": ">"}]},
                 {"label": "PERSON", "pattern": [{"ORTH": "<"},
                                                 {"TEXT": {"REGEX": "PERSON>.{64}</PERSON"}},
                                                 {"ORTH": ">"}]},
@@ -45,6 +50,11 @@ class SpacyNer:
                                                 {"TEXT": {"REGEX": "PERSON"}},
                                                 {"ORTH": ">"},
                                                 {"TEXT": {"REGEX": ".{64}</PERSON>"}}]},
+                {"label": "PERSON", "pattern": [{"ORTH": "<"},
+                                                {"TEXT": {"REGEX": "PERSON"}},
+                                                {"ORTH": ">"},
+                                                {"TEXT": {"REGEX": ".{64}</PERSON"}},
+                                                {"ORTH": ">"}]},
                 {"label": "EMAIL", "pattern": [{"ORTH": "<"},
                                                {"TEXT": {"REGEX": "EMAIL>.{64}</EMAIL"}},
                                                {"ORTH": ">"}]},
@@ -52,6 +62,11 @@ class SpacyNer:
                                                {"TEXT": {"REGEX": "EMAIL"}},
                                                {"ORTH": ">"},
                                                {"TEXT": {"REGEX": ".{64}</EMAIL>"}}]},
+                {"label": "EMAIL", "pattern": [{"ORTH": "<"},
+                                               {"TEXT": {"REGEX": "EMAIL"}},
+                                               {"ORTH": ">"},
+                                               {"TEXT": {"REGEX": ".{64}</EMAIL"}},
+                                               {"ORTH": ">"}]},
                 {"label": "PERSONAL_ACCOUNT", "pattern": [{"ORTH": "<"},
                                                           {"TEXT": {"REGEX": "PERSONAL_ACCOUNT>.{64}</PERSONAL_ACCOUNT"}},
                                                           {"ORTH": ">"}]},
@@ -59,22 +74,37 @@ class SpacyNer:
                                                           {"TEXT": {"REGEX": "PERSONAL_ACCOUNT"}},
                                                           {"ORTH": ">"},
                                                           {"TEXT": {"REGEX": ".{64}</PERSONAL_ACCOUNT>"}}]},
+                {"label": "PERSONAL_ACCOUNT", "pattern": [{"ORTH": "<"},
+                                                          {"TEXT": {"REGEX": "PERSONAL_ACCOUNT"}},
+                                                          {"ORTH": ">"},
+                                                          {"TEXT": {"REGEX": ".{64}</PERSONAL_ACCOUNT"}},
+                                                          {"ORTH": ">"}]},
                 {"label": "PHONE_NUMBER", "pattern": [{"ORTH": "<"},
                                                       {"TEXT": {"REGEX": "PHONE_NUMBER"}},
                                                       {"ORTH": ">"},
                                                       {"TEXT": {"REGEX": ".{64}</PHONE_NUMBER>"}}]},
+                {"label": "PHONE_NUMBER", "pattern": [{"ORTH": "<"},
+                                                      {"TEXT": {"REGEX": "PHONE_NUMBER"}},
+                                                      {"ORTH": ">"},
+                                                      {"TEXT": {"REGEX": ".{64}</PHONE_NUMBER>"}},
+                                                      {"ORTH": ">"}]},
                 {"label": "PHONE_NUMBER", "pattern": [{"ORTH": "<"},
                                                       {"TEXT": {"REGEX": "PHONE_NUMBER>.{64}</PHONE_NUMBER"}},
                                                       {"ORTH": ">"}]}
             ]
 
             sp_ent.add_pattern(pattern)
+            if precreated_patterns is not None:
+                sp_ent.add_pattern(precreated_patterns)
 
             self.nlp = sp_ent.get_nlp()
 
             self.lab_desc["EMAIL"] = "Former email address of a person, organization or institution"
             self.lab_desc["PERSONAL_ACCOUNT"] = "Former link to a personal account e.g. on zooniverse"
             self.lab_desc["PHONE_NUMBER"] = "Former phone number"
+        elif precreated_patterns is not None:
+            sp_ent = SpacyEntity(lang)
+            sp_ent.add_pattern(precreated_patterns)
         else:
             if lang in ["zh", "en"]:
                 self.spacy_model = lang + "_core_web_sm"

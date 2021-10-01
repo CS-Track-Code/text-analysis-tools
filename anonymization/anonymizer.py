@@ -6,6 +6,7 @@ from concept_extraction.dbpedia import keyword_extraction_dbpedia
 
 class Anonymizer:
     def __init__(self, lang="en", patterns=None, sensible_data_labels=None):
+        self.lang = lang
         if patterns is None:
             patterns = default_patterns
         if sensible_data_labels is None:
@@ -16,14 +17,76 @@ class Anonymizer:
 
         self.entity_ruler = SpacyEntity(lang)
         self.entity_ruler.add_pattern(patterns)
+        self.saved_patterns = []
 
-    def anonymize_text(self, text, salt, library_list=None):
+    def get_saved_patterns(self):
+        return self.saved_patterns
+
+    def anonymize_text(self, text, salt, library_list=None, project_name=None):
         anonymize = []
-        result_doc = self.entity_ruler.classify(text)
+        # project_name = project_name.split(" ") if project_name is not None else []
+        if project_name is not None:
+            normal = []
+            lower = []
+            upper = []
+            for word in self.entity_ruler.nlp(project_name):
+                normal.append({"ORTH": word.text})
+                lower.append({"ORTH": word.text.lower()})
+                upper.append({"ORTH": word.text.upper()})
+            pattern = [{"label": "PROJECT_NAME", "pattern": normal},
+                       {"label": "PROJECT_NAME", "pattern": lower},
+                       {"label": "PROJECT_NAME", "pattern": upper}]
+            self.entity_ruler.add_pattern(pattern)
+
+            for p in pattern:
+                if p not in self.saved_patterns:
+                    self.saved_patterns.append(p)
 
         dbpedia = keyword_extraction_dbpedia(text, "en")
+
+        more_patterns = []
+        new_patterns = []
+        for dbpedia_result in dbpedia:
+            for schema, label in [("Place", "GPE"), ("Organization", "ORG"), ("Event", "EVENT")]:
+                if schema in dbpedia_result[3]:
+                    pattern = []
+                    for word in self.entity_ruler.nlp(dbpedia_result[2]):
+                        pattern.append({"ORTH": word.text})
+                    new_pattern_line = {"label": "NOT_A_PERSON", "pattern": pattern}
+                    if new_pattern_line not in more_patterns:
+                        more_patterns.append(new_pattern_line)
+                        new_patterns.append({"label": label, "pattern": new_pattern_line["pattern"]})
+
+                    pattern = []
+                    for word in self.entity_ruler.nlp(dbpedia_result[0].replace("_", " ")):
+                        pattern.append({"ORTH": word.text})
+                    new_pattern_line = {"label": "NOT_A_PERSON", "pattern": pattern}
+                    if new_pattern_line not in more_patterns:
+                        more_patterns.append(new_pattern_line)
+                        new_patterns.append({"label": label, "pattern": new_pattern_line["pattern"]})
+
+                    if "&" in dbpedia_result[0]:
+                        pattern = []
+                        for word in self.entity_ruler.nlp(dbpedia_result[0].replace("_", " ").replace("&", "and")):
+                            pattern.append({"ORTH": word.text})
+                        new_pattern_line = {"label": "NOT_A_PERSON", "pattern": pattern}
+                        if new_pattern_line not in more_patterns:
+                            more_patterns.append(new_pattern_line)
+                            new_patterns.append({"label": label, "pattern": new_pattern_line["pattern"]})
+        if len(more_patterns) > 0:
+            self.entity_ruler.add_pattern(more_patterns)
+            for p in new_patterns:
+                if p not in self.saved_patterns:
+                    self.saved_patterns.append(p)
+
         dbpedia_in_text = [w[2] for w in dbpedia]
         dbpedia_wiki_words = [w[0] for w in dbpedia]
+
+        result_doc = self.entity_ruler.classify(text)
+        if self.entity_ruler.ruler.matcher.__contains__("PROJECT_NAME"):
+            self.entity_ruler.ruler.matcher.remove("PROJECT_NAME")
+        if self.entity_ruler.ruler.matcher.__contains__("NOT_A_PERSON"):
+            self.entity_ruler.ruler.matcher.remove("NOT_A_PERSON")
 
         for i in range(len(result_doc.ents)):
             if result_doc.ents[i].label_ in self.sensible_data_labels:
