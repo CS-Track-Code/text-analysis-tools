@@ -5,7 +5,7 @@ from concept_extraction.dbpedia import keyword_extraction_dbpedia
 
 
 class Anonymizer:
-    def __init__(self, lang="en", patterns=None, sensible_data_labels=None):
+    def __init__(self, lang="en", patterns=None, sensible_data_labels=None, keep_project_names=True):
         self.lang = lang
         if patterns is None:
             patterns = default_patterns
@@ -19,28 +19,53 @@ class Anonymizer:
         self.entity_ruler.add_pattern(patterns)
         self.saved_patterns = []
 
+        self.keep_project_names = keep_project_names
+
     def get_saved_patterns(self):
         return self.saved_patterns
+
+    def add_project_name_to_patterns(self, project_name):
+        normal = []
+        lower = []
+        upper = []
+        split_in_words = self.entity_ruler.nlp(project_name)
+        for word in split_in_words:
+            normal.append({"ORTH": word.text})
+            lower.append({"ORTH": word.text.lower()})
+            upper.append({"ORTH": word.text.upper()})
+        pattern = [{"label": "PROJECT_NAME", "pattern": normal},
+                   {"label": "PROJECT_NAME", "pattern": lower},
+                   {"label": "PROJECT_NAME", "pattern": upper}]
+        self.entity_ruler.add_pattern(pattern)
+
+        for p in pattern:
+            if p not in self.saved_patterns:
+                self.saved_patterns.append(p)
+
+        for i in range(len(split_in_words)):
+            if 1 < i < len(split_in_words):
+                for j in range(len(split_in_words) - i + 1):
+                    normal = []
+                    lower = []
+                    upper = []
+                    for word in split_in_words[j:j + i]:
+                        normal.append({"ORTH": word.text})
+                        lower.append({"ORTH": word.text.lower()})
+                        upper.append({"ORTH": word.text.upper()})
+                    pattern = [{"label": "PROJECT_NAME_partial", "pattern": normal},
+                               {"label": "PROJECT_NAME_partial", "pattern": lower},
+                               {"label": "PROJECT_NAME_partial", "pattern": upper}]
+                    self.entity_ruler.add_pattern(pattern)
+
+                    for p in pattern:
+                        if p not in self.saved_patterns:
+                            self.saved_patterns.append(p)
 
     def anonymize_text(self, text, salt, library_list=None, project_name=None):
         anonymize = []
         # project_name = project_name.split(" ") if project_name is not None else []
         if project_name is not None:
-            normal = []
-            lower = []
-            upper = []
-            for word in self.entity_ruler.nlp(project_name):
-                normal.append({"ORTH": word.text})
-                lower.append({"ORTH": word.text.lower()})
-                upper.append({"ORTH": word.text.upper()})
-            pattern = [{"label": "PROJECT_NAME", "pattern": normal},
-                       {"label": "PROJECT_NAME", "pattern": lower},
-                       {"label": "PROJECT_NAME", "pattern": upper}]
-            self.entity_ruler.add_pattern(pattern)
-
-            for p in pattern:
-                if p not in self.saved_patterns:
-                    self.saved_patterns.append(p)
+            self.add_project_name_to_patterns(project_name)
 
         dbpedia = keyword_extraction_dbpedia(text, "en")
 
@@ -83,8 +108,11 @@ class Anonymizer:
         dbpedia_wiki_words = [w[0] for w in dbpedia]
 
         result_doc = self.entity_ruler.classify(text)
-        if self.entity_ruler.ruler.matcher.__contains__("PROJECT_NAME"):
-            self.entity_ruler.ruler.matcher.remove("PROJECT_NAME")
+        if not self.keep_project_names:
+            if self.entity_ruler.ruler.matcher.__contains__("PROJECT_NAME"):
+                self.entity_ruler.ruler.matcher.remove("PROJECT_NAME")
+            if self.entity_ruler.ruler.matcher.__contains__("PROJECT_NAME_partial"):
+                self.entity_ruler.ruler.matcher.remove("PROJECT_NAME_partial")
         if self.entity_ruler.ruler.matcher.__contains__("NOT_A_PERSON"):
             self.entity_ruler.ruler.matcher.remove("NOT_A_PERSON")
 
